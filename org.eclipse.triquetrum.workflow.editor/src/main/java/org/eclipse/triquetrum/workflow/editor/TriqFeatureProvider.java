@@ -27,9 +27,11 @@ import org.eclipse.graphiti.features.IDirectEditingFeature;
 import org.eclipse.graphiti.features.IFeature;
 import org.eclipse.graphiti.features.IUpdateFeature;
 import org.eclipse.graphiti.features.context.IAddContext;
+import org.eclipse.graphiti.features.context.ICustomContext;
 import org.eclipse.graphiti.features.context.IDirectEditingContext;
 import org.eclipse.graphiti.features.context.IPictogramElementContext;
 import org.eclipse.graphiti.features.context.IUpdateContext;
+import org.eclipse.graphiti.features.custom.ICustomFeature;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.ui.features.DefaultFeatureProvider;
 import org.eclipse.triquetrum.workflow.editor.features.ActorAddFeature;
@@ -38,11 +40,13 @@ import org.eclipse.triquetrum.workflow.editor.features.ConnectionAddFeature;
 import org.eclipse.triquetrum.workflow.editor.features.ConnectionCreateFeature;
 import org.eclipse.triquetrum.workflow.editor.features.DirectorAddFeature;
 import org.eclipse.triquetrum.workflow.editor.features.DirectorUpdateFeature;
+import org.eclipse.triquetrum.workflow.editor.features.LookInsideFeature;
 import org.eclipse.triquetrum.workflow.editor.features.ModelElementCreateFeature;
 import org.eclipse.triquetrum.workflow.editor.features.ModelElementNameDirectEditFeature;
 import org.eclipse.triquetrum.workflow.editor.features.ParameterUpdateFeature;
 import org.eclipse.triquetrum.workflow.editor.features.PortAddFeature;
 import org.eclipse.triquetrum.workflow.model.Actor;
+import org.eclipse.triquetrum.workflow.model.CompositeActor;
 import org.eclipse.triquetrum.workflow.model.Director;
 import org.eclipse.triquetrum.workflow.model.NamedObj;
 import org.eclipse.triquetrum.workflow.model.Parameter;
@@ -75,6 +79,11 @@ public class TriqFeatureProvider extends DefaultFeatureProvider {
   }
 
   @Override
+  public ICustomFeature[] getCustomFeatures(ICustomContext context) {
+    return new ICustomFeature[] { new LookInsideFeature(this) };
+  }
+
+  @Override
   public IFeature[] getDragAndDropFeatures(IPictogramElementContext context) {
     // simply return all create connection features
     return getCreateConnectionFeatures();
@@ -101,7 +110,7 @@ public class TriqFeatureProvider extends DefaultFeatureProvider {
   public IAddFeature getAddFeature(IAddContext context) {
     if (context.getNewObject() instanceof Director) {
       return new DirectorAddFeature(this);
-    } else if (context.getNewObject() instanceof Actor) {
+    } else if ((context.getNewObject() instanceof Actor)||(context.getNewObject() instanceof CompositeActor)) {
       return new ActorAddFeature(this);
     } else if (context.getNewObject() instanceof Relation) {
       return new ConnectionAddFeature(this);

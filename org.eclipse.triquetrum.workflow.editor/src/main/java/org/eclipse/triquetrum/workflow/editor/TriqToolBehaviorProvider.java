@@ -11,9 +11,6 @@
 package org.eclipse.triquetrum.workflow.editor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -22,15 +19,21 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.graphiti.dt.IDiagramTypeProvider;
 import org.eclipse.graphiti.features.ICreateFeature;
 import org.eclipse.graphiti.features.context.IDoubleClickContext;
+import org.eclipse.graphiti.features.context.IPictogramElementContext;
 import org.eclipse.graphiti.features.context.impl.CustomContext;
 import org.eclipse.graphiti.features.custom.ICustomFeature;
+import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.palette.IObjectCreationToolEntry;
 import org.eclipse.graphiti.palette.IPaletteCompartmentEntry;
 import org.eclipse.graphiti.palette.IToolEntry;
 import org.eclipse.graphiti.palette.impl.PaletteCompartmentEntry;
+import org.eclipse.graphiti.services.Graphiti;
+import org.eclipse.graphiti.tb.ContextEntryHelper;
 import org.eclipse.graphiti.tb.DefaultToolBehaviorProvider;
-import org.eclipse.graphiti.tb.IToolBehaviorProvider;
+import org.eclipse.graphiti.tb.IContextButtonEntry;
+import org.eclipse.graphiti.tb.IContextButtonPadData;
 import org.eclipse.triquetrum.workflow.editor.features.ActorConfigureFeature;
+import org.eclipse.triquetrum.workflow.editor.features.LookInsideFeature;
 import org.eclipse.triquetrum.workflow.editor.features.ModelElementCreateFeature;
 import org.eclipse.triquetrum.workflow.editor.features.RunFeature;
 
@@ -57,6 +60,29 @@ public class TriqToolBehaviorProvider extends DefaultToolBehaviorProvider {
       return new RunFeature(getFeatureProvider());
     }
     return super.getCommandFeature(context, hint);
+  }
+
+  @Override
+  public IContextButtonPadData getContextButtonPad(IPictogramElementContext context) {
+    IContextButtonPadData data = super.getContextButtonPad(context);
+    PictogramElement pe = context.getPictogramElement();
+
+    // 1. set the generic context buttons
+    setGenericContextButtons(data, pe, CONTEXT_BUTTON_DELETE | CONTEXT_BUTTON_UPDATE);
+
+    // 2. set the look inside button
+    CustomContext cc = new CustomContext(new PictogramElement[] { pe });
+    ICustomFeature[] cf = getFeatureProvider().getCustomFeatures(cc);
+    for (int i = 0; i < cf.length; i++) {
+      ICustomFeature iCustomFeature = cf[i];
+      if (iCustomFeature instanceof LookInsideFeature) {
+        boolean isExpanded = ("true".equals(Graphiti.getPeService().getPropertyValue(pe, "isExpanded")));
+        IContextButtonEntry collapseButton = ContextEntryHelper.createCollapseContextButton(isExpanded, iCustomFeature, cc);
+        data.setCollapseContextButton(collapseButton);
+        break;
+      }
+    }
+    return data;
   }
 
   @Override
