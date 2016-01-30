@@ -36,6 +36,8 @@ import org.eclipse.graphiti.services.IPeCreateService;
 import org.eclipse.graphiti.util.ColorConstant;
 import org.eclipse.graphiti.util.IColorConstant;
 import org.eclipse.triquetrum.workflow.model.Actor;
+import org.eclipse.triquetrum.workflow.model.CompositeActor;
+import org.eclipse.triquetrum.workflow.model.Entity;
 import org.eclipse.triquetrum.workflow.model.NamedObj;
 import org.eclipse.triquetrum.workflow.model.Parameter;
 import org.eclipse.triquetrum.workflow.model.Port;
@@ -76,25 +78,17 @@ public class ActorAddFeature extends AbstractAddShapeFeature {
 
   public boolean canAdd(IAddContext context) {
     // check if user wants to add an actor
-    if (context.getNewObject() instanceof Actor) {
+    if ((context.getNewObject() instanceof Actor)||(context.getNewObject() instanceof CompositeActor)) {
       // check if user wants to add to a diagram
       if (context.getTargetContainer() instanceof Diagram) {
         return true;
       }
     }
-
-//    Object newObject = context.getNewObject();
-//    if (newObject instanceof Actor) {
-//      // need to check that the actor belongs to the same CompositeActor as the one associated with the diagram 
-//      Actor actor = (Actor) newObject;
-//      Object topLevelForDiagram = getBusinessObjectForPictogramElement(getDiagram());
-//      return (topLevelForDiagram == null || topLevelForDiagram.equals(actor.getContainer()));
-//    }
     return false;
   }
 
   public PictogramElement add(IAddContext context) {
-    Actor addedActor = (Actor) context.getNewObject();
+    Entity addedActor = (Entity) context.getNewObject();
     ContainerShape targetContainer = context.getTargetContainer();
 
     Object topLevelForDiagram = getBusinessObjectForPictogramElement(getDiagram());
@@ -116,17 +110,16 @@ public class ActorAddFeature extends AbstractAddShapeFeature {
     int height = 60;
 
     Rectangle invisibleRectangle; // need to access it later
-
     {
       invisibleRectangle = gaService.createInvisibleRectangle(containerShape);
       gaService.setLocationAndSize(invisibleRectangle, xLocation, yLocation, width + 15, height);
 
       // create and set graphics algorithm
-      RoundedRectangle roundedRectangle = gaService.createRoundedRectangle(invisibleRectangle, 5, 5);
-      roundedRectangle.setForeground(manageColor(ACTOR_FOREGROUND));
-      roundedRectangle.setBackground(manageColor(ACTOR_BACKGROUND));
-      roundedRectangle.setLineWidth(2);
-      gaService.setLocationAndSize(roundedRectangle, SHAPE_X_OFFSET, 0, width, height);
+      RoundedRectangle actorRectangle = gaService.createRoundedRectangle(invisibleRectangle, 5, 5);
+      actorRectangle.setForeground(manageColor(ACTOR_FOREGROUND));
+      actorRectangle.setBackground(manageColor(ACTOR_BACKGROUND));
+      actorRectangle.setLineWidth(2);
+      gaService.setLocationAndSize(actorRectangle, SHAPE_X_OFFSET, 0, width, height);
 
       // if added Class has no resource we add it to the resource
       // of the diagram
@@ -147,6 +140,7 @@ public class ActorAddFeature extends AbstractAddShapeFeature {
       Polyline polyline = gaService.createPolyline(shape, new int[] { SHAPE_X_OFFSET, 20, SHAPE_X_OFFSET + width, 20 });
       polyline.setForeground(manageColor(ACTOR_FOREGROUND));
       polyline.setLineWidth(2);
+      link(shape, addedActor, "ACTOR");
     }
 
     // SHAPE WITH actor name as TEXT

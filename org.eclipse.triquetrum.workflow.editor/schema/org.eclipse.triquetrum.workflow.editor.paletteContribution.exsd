@@ -107,6 +107,8 @@ It can be a Java implementation or an actor-oriented implementation.
                   </enumeration>
                   <enumeration value="Port">
                   </enumeration>
+                  <enumeration value="CompositeActor">
+                  </enumeration>
                </restriction>
             </simpleType>
          </attribute>
